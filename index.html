@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#c8102e">
+<title>焦煤交易日志</title>
+<style>
+:root{
+  --red:#c8102e;
+  --green:#0a8f3c;
+  --bg:#f5f6f8;
+  --card:#ffffff;
+  --line:#e8eaee;
+  --txt:#1a1d23;
+  --sub:#8a8f99;
+  --amber:#d98a00;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:15px;-webkit-text-size-adjust:100%;}
+body{padding-bottom:40px;}
+.wrap{max-width:520px;margin:0 auto;padding:12px;}
+
+/* 头部统计 */
+.stats{background:linear-gradient(135deg,#1f2530,#2d3542);border-radius:16px;padding:16px;color:#fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.12);margin-bottom:12px;}
+.stats .big{font-size:13px;color:#aeb6c2;margin-bottom:4px;}
+.stats .total{font-size:34px;font-weight:700;letter-spacing:-.5px;line-height:1.1;}
+.stats .total.up{color:#ff8a9a;}
+.stats .total.down{color:#7ee2a8;}
+.grid3{display:flex;gap:8px;margin-top:14px;}
+.grid3 .cell{flex:1;background:rgba(255,255,255,.08);border-radius:10px;padding:9px 8px;text-align:center;}
+.grid3 .cell .v{font-size:17px;font-weight:700;}
+.grid3 .cell .k{font-size:11px;color:#aeb6c2;margin-top:2px;}
+.holdbar{margin-top:10px;background:rgba(217,138,0,.18);border:1px solid rgba(217,138,0,.5);
+  border-radius:10px;padding:8px 12px;font-size:13px;color:#ffcf7a;display:flex;justify-content:space-between;}
+
+/* 卡片 */
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.card h3{margin:0 0 12px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.card h3 .dot{width:4px;height:15px;background:var(--red);border-radius:2px;}
+
+/* 表单 */
+.row{display:flex;gap:8px;margin-bottom:10px;}
+.field{flex:1;}
+.field label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;padding-left:2px;}
+.field input,.field select{width:100%;height:46px;border:1.5px solid var(--line);border-radius:10px;
+  padding:0 12px;font-size:16px;background:#fbfcfd;color:var(--txt);outline:none;
+  -webkit-appearance:none;appearance:none;font-family:inherit;}
+.field input:focus,.field select:focus{border-color:var(--red);background:#fff;}
+
+/* 方向切换 */
+.dir{display:flex;gap:8px;margin-bottom:10px;}
+.dir button{flex:1;height:46px;border:1.5px solid var(--line);background:#fbfcfd;border-radius:10px;
+  font-size:16px;font-weight:600;color:var(--sub);cursor:pointer;transition:.15s;font-family:inherit;}
+.dir button.on-l{border-color:var(--red);background:#fdeef1;color:var(--red);}
+.dir button.on-s{border-color:var(--green);background:#eaf7ef;color:var(--green);}
+
+.calc{background:#f7f8fa;border-radius:10px;padding:10px 12px;font-size:13px;color:var(--sub);
+  margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.calc b{font-size:18px;}
+.calc b.up{color:var(--red);}
+.calc b.down{color:var(--green);}
+
+.btn{width:100%;height:50px;border:none;border-radius:12px;background:var(--red);color:#fff;
+  font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
+.btn:active{transform:scale(.985);opacity:.92;}
+.btn.open{background:#1f2530;}
+
+/* 明细 */
+.tabs{display:flex;gap:6px;margin-bottom:10px;}
+.tabs button{flex:1;height:38px;border:none;background:#eef0f3;border-radius:9px;font-size:14px;
+  color:var(--sub);font-weight:600;cursor:pointer;font-family:inherit;}
+.tabs button.on{background:#1f2530;color:#fff;}
+
+.item{padding:11px 0;border-bottom:1px solid var(--line);}
+.item:last-child{border-bottom:none;}
+.item .line1{display:flex;align-items:center;}
+.item .side{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;margin-right:10px;}
+.item .side.l{background:var(--red);}
+.item .side.s{background:var(--green);}
+.item .mid{flex:1;min-width:0;}
+.item .mid .t1{font-size:14px;font-weight:600;}
+.item .mid .t2{font-size:12px;color:var(--sub);margin-top:2px;}
+.item .pl{font-size:16px;font-weight:700;text-align:right;margin-right:8px;}
+.item .pl.up{color:var(--red);}
+.item .pl.down{color:var(--green);}
+.item .pl.hold{color:var(--amber);font-size:13px;}
+.item .act{width:30px;height:30px;border:none;background:#f5f6f8;border-radius:8px;color:#b0b5bd;
+  font-size:15px;cursor:pointer;flex-shrink:0;font-family:inherit;}
+
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:20px;margin-left:6px;
+  vertical-align:1px;font-weight:600;}
+.tag.hold{background:#fff3dd;color:var(--amber);}
+.tag.done{background:#eef0f3;color:var(--sub);}
+.tag.win{background:#fdeef1;color:var(--red);}
+.tag.loss{background:#eaf7ef;color:var(--green);}
+
+.closebox{margin-top:10px;background:#fbf7ee;border:1px solid #f0e3c8;border-radius:10px;padding:10px;
+  display:none;}
+.closebox.on{display:block;}
+.closebox .r{display:flex;gap:8px;align-items:end;}
+.closebox .r .field{flex:1;}
+.closebox .r button{height:46px;padding:0 16px;border:none;border-radius:10px;background:var(--red);
+  color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.closebox .r button.gray{background:#d5d8dd;}
+
+.empty{text-align:center;color:var(--sub);padding:30px 0;font-size:14px;}
+
+.bar{display:flex;gap:8px;margin-top:12px;}
+.bar button{flex:1;height:44px;border:1.5px solid var(--line);background:#fff;border-radius:11px;
+  font-size:14px;font-weight:600;color:var(--txt);cursor:pointer;font-family:inherit;}
+.bar button.ghost{color:var(--sub);}
+
+.hint{font-size:11px;color:var(--sub);text-align:center;margin-top:14px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="stats">
+    <div class="big">总盈亏（元）· 仅已平仓</div>
+    <div class="total" id="totalPL">0</div>
+    <div class="grid3">
+      <div class="cell"><div class="v" id="stWin">0%</div><div class="k">胜率</div></div>
+      <div class="cell"><div class="v" id="stCount">0</div><div class="k">已平笔数</div></div>
+      <div class="cell"><div class="v" id="stMonth">0</div><div class="k">本月盈亏</div></div>
+    </div>
+    <div class="holdbar" id="holdBar" style="display:none;">
+      <span>持仓中</span><span id="holdTxt">0 笔</span>
+    </div>
+  </div>
+
+  <!-- 开仓登记 -->
+  <div class="card">
+    <h3><span class="dot"></span>开仓登记</h3>
+
+    <div class="field" style="margin-bottom:10px;">
+      <label>开仓日期</label>
+      <input type="date" id="fDate">
+    </div>
+
+    <div class="dir">
+      <button id="dirL" class="on-l" onclick="setDir('L')">做多</button>
+      <button id="dirS" onclick="setDir('S')">做空</button>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>手数</label>
+        <input type="number" id="fLots" inputmode="decimal" placeholder="1" value="1">
+      </div>
+      <div class="field">
+        <label>开仓价</label>
+        <input type="number" id="fOpen" inputmode="decimal" placeholder="1541">
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:10px;">
+      <label>备注（可选）</label>
+      <input type="text" id="fNote" placeholder="如：夜盘追多 / 共振信号">
+    </div>
+
+    <button class="btn open" onclick="saveOpen()">开仓登记</button>
+  </div>
+
+  <!-- 明细 -->
+  <div class="card">
+    <h3><span class="dot"></span>交易明细</h3>
+    <div class="tabs">
+      <button id="tabAll" class="on" onclick="setTab('all')">全部</button>
+      <button id="tabHold" onclick="setTab('hold')">持仓中</button>
+      <button id="tabMonth" onclick="setTab('month')">本月</button>
+    </div>
+    <div id="list"></div>
+
+    <div class="bar">
+      <button onclick="exportCSV()">导出 CSV</button>
+      <button class="ghost" onclick="clearAll()">清空全部</button>
+    </div>
+  </div>
+
+  <div class="hint">
+    数据保存在本机浏览器，不上传。<br>
+    开仓先登记，平仓后回来补价即可。建议「添加到主屏幕」。
+  </div>
+</div>
+
+<script>
+var KEY='jm_trade_log_v2';
+var dir='L', tab='all';
+var today=new Date();
+document.getElementById('fDate').value=today.toISOString().slice(0,10);
+
+function fmt(n){return n.toLocaleString('zh-CN',{maximumFractionDigits:0});}
+
+function setDir(d){
+  dir=d;
+  document.getElementById('dirL').className = d==='L'?'on-l':'';
+  document.getElementById('dirS').className = d==='S'?'on-s':'';
+}
+function setTab(t){
+  tab=t;
+  document.getElementById('tabAll').className = t==='all'?'on':'';
+  document.getElementById('tabHold').className = t==='hold'?'on':'';
+  document.getElementById('tabMonth').className = t==='month'?'on':'';
+  render();
+}
+
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[];}catch(e){return [];}}
+function save2(d){localStorage.setItem(KEY,JSON.stringify(d));}
+
+/* 开仓登记 */
+function saveOpen(){
+  var date=document.getElementById('fDate').value;
+  var lots=parseFloat(document.getElementById('fLots').value);
+  var o=parseFloat(document.getElementById('fOpen').value);
+  var note=document.getElementById('fNote').value.trim();
+  if(!date){alert('请选择开仓日期');return;}
+  if(!lots||lots<=0){alert('请填手数');return;}
+  if(isNaN(o)){alert('请填开仓价');return;}
+  var d=load();
+  d.unshift({id:Date.now(),date:date,dir:dir,lots:lots,open:o,close:null,pl:null,note:note});
+  save2(d);
+  document.getElementById('fOpen').value='';
+  document.getElementById('fNote').value='';
+  document.getElementById('fLots').value='1';
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* 平仓：补价 */
+function openClose(id){
+  var box=document.getElementById('cb_'+id);
+  if(box){box.classList.toggle('on');}
+}
+function doClose(id){
+  var inp=document.getElementById('cc_'+id);
+  var c=parseFloat(inp.value);
+  if(isNaN(c)){alert('请输入平仓价');return;}
+  var d=load();
+  d.forEach(function(x){
+    if(x.id===id){
+      var diff=(x.dir==='L')?(c-x.open):(x.open-c);
+      x.close=c;
+      x.pl=Math.round(diff*x.lots*60);
+      x.closeDate=new Date().toISOString().slice(0,10);
+    }
+  });
+  save2(d);render();
+}
+
+function del(id){
+  if(!confirm('删除这笔记录？'))return;
+  save2(load().filter(function(x){return x.id!==id;}));
+  render();
+}
+
+function stats(list){
+  var closed=list.filter(function(x){return x.pl!==null;});
+  var n=closed.length, win=0, total=0, gp=0, gl=0;
+  var mkey=today.toISOString().slice(0,7), mpl=0;
+  closed.forEach(function(x){
+    total+=x.pl;
+    if(x.pl>0){win++;gp+=x.pl;} else if(x.pl<0){gl+=Math.abs(x.pl);}
+    if(x.date.slice(0,7)===mkey)mpl+=x.pl;
+  });
+  return {
+    n:n,total:total,
+    wr: n? (win/n*100):0,
+    pf: gl>0? (gp/gl):(gp>0?99:0),
+    mpl:mpl,
+    hold: list.length-n
+  };
+}
+
+function render(){
+  var d=load();
+  var s=stats(d);
+  var tEl=document.getElementById('totalPL');
+  tEl.textContent=(s.total>0?'+':'')+fmt(s.total);
+  tEl.className='total '+(s.total>0?'up':(s.total<0?'down':''));
+  document.getElementById('stWin').textContent=s.wr.toFixed(1)+'%';
+  document.getElementById('stCount').textContent=s.n;
+  document.getElementById('stMonth').textContent=(s.mpl>0?'+':'')+fmt(s.mpl);
+
+  var hb=document.getElementById('holdBar');
+  if(s.hold>0){hb.style.display='flex';document.getElementById('holdTxt').textContent=s.hold+' 笔';}
+  else{hb.style.display='none';}
+
+  var mkey=today.toISOString().slice(0,7);
+  var show=d;
+  if(tab==='hold')show=d.filter(function(x){return x.pl===null;});
+  else if(tab==='month')show=d.filter(function(x){return x.date.slice(0,7)===mkey;});
+
+  var box=document.getElementById('list');
+  if(!show.length){box.innerHTML='<div class="empty">暂无记录</div>';return;}
+
+  box.innerHTML = show.map(function(x){
+    var cls = x.dir==='L'?'l':'s';
+    var txt = x.dir==='L'?'多':'空';
+    var isHold = x.pl===null;
+
+    var plHtml, tag;
+    if(isHold){
+      plHtml='<div class="pl hold">持仓中</div>';
+      tag='<span class="tag hold">持仓中</span>';
+    }else{
+      var plcls = x.pl>0?'up':(x.pl<0?'down':'');
+      var plTxt = (x.pl>0?'+':'')+fmt(x.pl);
+      plHtml='<div class="pl '+plcls+'">'+plTxt+'</div>';
+      tag = x.pl>0? '<span class="tag win">盈</span>' :
+            (x.pl<0? '<span class="tag loss">亏</span>' : '<span class="tag done">平</span>');
+    }
+
+    var t2 = x.open + (isHold? ' → 待平' : ' → '+x.close);
+    var note = x.note? (' · '+esc(x.note)) : '';
+
+    var closeUI='';
+    if(isHold){
+      closeUI = '<div class="closebox on">'
+        +'<div class="r">'
+        +'<div class="field"><label>平仓价</label>'
+        +'<input type="number" id="cc_'+x.id+'" inputmode="decimal" placeholder="输入平仓价"></div>'
+        +'<button onclick="doClose('+x.id+')">确认平仓</button>'
+        +'</div></div>';
+    }
+
+    var actBtn = isHold
+      ? '<button class="act" onclick="del('+x.id+')">✕</button>'
+      : '<button class="act" onclick="del('+x.id+')">✕</button>';
+
+    return '<div class="item">'
+      +'<div class="line1">'
+      +'<div class="side '+cls+'">'+txt+'</div>'
+      +'<div class="mid"><div class="t1">'+x.date+' · '+x.lots+'手'+tag+'</div>'
+      +'<div class="t2">'+t2+esc(note)+'</div></div>'
+      +plHtml+actBtn
+      +'</div>'+closeUI+'</div>';
+  }).join('');
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+function exportCSV(){
+  var d=load();
+  if(!d.length){alert('还没有记录');return;}
+  var rows=[['开仓日期','方向','手数','开仓价','平仓价','盈亏(元)','状态','备注']];
+  d.slice().reverse().forEach(function(x){
+    rows.push([x.date, x.dir==='L'?'多':'空', x.lots, x.open,
+      x.pl===null?'':x.close, x.pl===null?'':x.pl, x.pl===null?'持仓中':'已平仓', x.note||'']);
+  });
+  var csv='\ufeff'+rows.map(function(r){
+    return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');
+  }).join('\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='焦煤交易日志_'+today.toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+function clearAll(){
+  if(!confirm('确定清空全部记录？不可恢复！'))return;
+  if(!confirm('再确认一次：所有记录将被删除。'))return;
+  localStorage.removeItem(KEY);render();
+}
+
+render();
+</script>
+</body>
+</html>
